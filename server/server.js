@@ -3,12 +3,18 @@ import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
 import nodemailer from 'nodemailer'
+import fs from 'fs'
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 
+if (!fs.existsSync('uploads')) fs.mkdirSync('uploads')
 const upload = multer({ dest: 'uploads/' })
+
+if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASS) {
+  console.error('Missing GMAIL_USER or GMAIL_APP_PASS environment variables')
+}
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
