@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
 import fs from 'fs'
+import path from 'path'
 
 const app = express()
 app.use(cors())
@@ -39,14 +40,25 @@ async function sendEmail({ to, subject, html }) {
   }
 }
 
+app.use('/uploads', express.static('uploads'))
+
 app.post('/api/order', upload.array('files'), async (req, res) => {
   try {
     const { name, email, service, size, copies, details } = req.body
     const total = Number(copies) * 3
+    const baseUrl = `${req.protocol}://${req.get('host')}`
 
-    const fileList = req.files?.length
-      ? `<p style="color:#666"><strong>Files uploaded:</strong> ${req.files.map(f => f.originalname).join(', ')}</p>`
-      : ''
+    let fileLinks = ''
+    if (req.files?.length) {
+      fileLinks = '<p style="color:#666"><strong>Files uploaded:</strong></p><ul>'
+      for (const f of req.files) {
+        const ext = path.extname(f.originalname)
+        const newPath = `${f.path}${ext}`
+        fs.renameSync(f.path, newPath)
+        fileLinks += `<li><a href="${baseUrl}/uploads/${f.filename}${ext}">${f.originalname}</a></li>`
+      }
+      fileLinks += '</ul>'
+    }
 
     const emailHtml = `
       <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
@@ -60,7 +72,7 @@ app.post('/api/order', upload.array('files'), async (req, res) => {
           <tr><td style="padding:8px;border:1px solid #ddd;font-weight:bold">Total Price</td><td style="padding:8px;border:1px solid #ddd;font-size:18px;font-weight:bold;color:#0ea5e9">₱${total}.00</td></tr>
           <tr><td style="padding:8px;border:1px solid #ddd;font-weight:bold">Details</td><td style="padding:8px;border:1px solid #ddd">${details || '—'}</td></tr>
         </table>
-        ${fileList}
+        ${fileLinks}
       </div>
     `
 
