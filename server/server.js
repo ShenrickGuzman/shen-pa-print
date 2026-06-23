@@ -4,6 +4,7 @@ import cors from 'cors'
 import multer from 'multer'
 import fs from 'fs'
 import path from 'path'
+import https from 'https'
 
 const app = express()
 app.use(cors())
@@ -12,32 +13,46 @@ app.use(express.json())
 if (!fs.existsSync('uploads')) fs.mkdirSync('uploads')
 const upload = multer({ dest: 'uploads/' })
 
-async function sendEmail({ to, subject, html }) {
-  const apiKey = process.env.MJ_API_KEY
-  const secretKey = process.env.MJ_SECRET_KEY
-  const from = process.env.FROM_EMAIL || 'shenrickguzman07@gmail.com'
+function sendEmail({ to, subject, html }) {
+  return new Promise((resolve, reject) => {
+    const apiKey = process.env.MJ_API_KEY
+    const secretKey = process.env.MJ_SECRET_KEY
+    const from = process.env.FROM_EMAIL || 'shenrickguzman07@gmail.com'
 
-  const res = await fetch('https://api.mailjet.com/v3.1/send', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${apiKey}:${secretKey}`).toString('base64'),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+    const data = JSON.stringify({
       Messages: [{
         From: { Email: from, Name: 'Shen pa Print' },
         To: [{ Email: to }],
         Subject: subject,
         HTMLPart: html,
       }],
-    }),
-  })
+    })
 
-  if (!res.ok) {
-    const body = await res.text()
-    console.error(`Mailjet error (${res.status}): ${body}`)
-    throw new Error(`Mailjet error: ${res.status}`)
-  }
+    const req = https.request({
+      hostname: 'api.mailjet.com',
+      path: '/v3.1/send',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${apiKey}:${secretKey}`).toString('base64'),
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data),
+      },
+    }, (res) => {
+      let body = ''
+      res.on('data', (chunk) => body += chunk)
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve()
+        } else {
+          reject(new Error(`Mailjet error ${res.statusCode}: ${body}`))
+        }
+      })
+    })
+
+    req.on('error', reject)
+    req.write(data)
+    req.end()
+  })
 }
 
 app.use('/uploads', express.static('uploads'))
