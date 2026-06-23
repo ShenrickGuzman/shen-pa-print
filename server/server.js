@@ -2,8 +2,8 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
-import nodemailer from 'nodemailer'
 import fs from 'fs'
+import { readFile } from 'fs/promises'
 
 const app = express()
 app.use(cors())
@@ -12,21 +12,46 @@ app.use(express.json())
 if (!fs.existsSync('uploads')) fs.mkdirSync('uploads')
 const upload = multer({ dest: 'uploads/' })
 
-if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASS) {
-  console.error('Missing GMAIL_USER or GMAIL_APP_PASS environment variables')
-}
+const MJ_API_KEY = process.env.MJ_API_KEY
+const MJ_SECRET_KEY = process.env.MJ_SECRET_KEY
+const FROM_EMAIL = process.env.FROM_EMAIL || 'shenrickguzman07@gmail.com'
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASS,
-  },
-  connectionTimeout: 10000,
-})
+async function sendMailjet({ to, subject, html, attachments = [] }) {
+  const messages = {
+    Messages: [{
+      From: { Email: FROM_EMAIL, Name: 'Shen pa Print' },
+      To: Array.isArray(to) ? to : [{ Email: to }],
+      Subject: subject,
+      HTMLPart: html,
+    }],
+  }
+
+  if (attachments.length) {
+    const files = await Promise.all(
+      attachments.map(async (f) => ({
+        ContentType: 'application/octet-stream',
+        Filename: f.filename,
+        Base64Content: (await readFile(f.path)).toString('base64'),
+      }))
+    )
+    messages.Messages[0].Attachments = files
+  }
+
+  const auth = Buffer.from(`${MJ_API_KEY}:${MJ_SECRET_KEY}`).toString('base64')
+  const res = await fetch('https://api.mailjet.com/v3.1/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${auth}`,
+    },
+    body: JSON.stringify(messages),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Mailjet error ${res.status}: ${text}`)
+  }
+}
 
 app.post('/api/order', upload.array('files'), async (req, res) => {
   try {
@@ -59,22 +84,17 @@ app.post('/api/order', upload.array('files'), async (req, res) => {
 
     const receiptHtml = orderHtml + `
       <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-      <p style="color:#666;font-size:13px">
-        Thank you for your order!
-        If you have any questions, contact the owner.
-      </p>
+      <p style="color:#666;font-size:13px">Thank you for your order!</p>
     `
 
-    await transporter.sendMail({
-      from: `"Shen pa Print" <${process.env.GMAIL_USER}>`,
-      to: process.env.GMAIL_USER,
+    await sendMailjet({
+      to: FROM_EMAIL,
       subject: `New Order from ${name} — ₱${total}.00`,
       html: orderHtml,
       attachments,
     })
 
-    await transporter.sendMail({
-      from: `"Shen pa Print" <${process.env.GMAIL_USER}>`,
+    await sendMailjet({
       to: email,
       subject: `Your Shen pa Print Order Receipt — ₱${total}.00`,
       html: receiptHtml,
