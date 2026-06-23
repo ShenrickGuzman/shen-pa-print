@@ -15,7 +15,8 @@ export default function Order() {
     const fd = new FormData(formRef.current)
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/order`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+      const res = await fetch(`${apiUrl.replace(/\/+$/, '')}/api/order`, {
         method: 'POST',
         body: fd,
       })
