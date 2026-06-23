@@ -16,14 +16,19 @@ export default function Order() {
     const fd = new FormData(e.target)
 
     try {
-      await emailjs.send('service_fopv36m', 'template_uauzulw', {
+      const total = Number(fd.get('copies')) * 3
+      const params = {
         name: fd.get('name'),
         email: fd.get('email'),
         copies: fd.get('copies'),
-        total: Number(fd.get('copies')) * 3,
+        total,
         details: fd.get('details'),
         fileNames: fileNames || 'None',
-      })
+      }
+
+      await emailjs.send('service_fopv36m', 'template_uauzulw', { ...params, to_email: 'guzmanshenrick@gmail.com' })
+
+      await emailjs.send('service_fopv36m', 'template_uauzulw', { ...params, to_email: fd.get('email') })
       setSent(true)
     } catch {
       alert('May error sa pag send. Try mo ulit boss!')
