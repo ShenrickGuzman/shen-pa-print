@@ -42,8 +42,9 @@ export default function Order() {
       await emailjs.send('service_fopv36m', 'template_uauzulw', { ...params, to_email: 'guzmanshenrick@gmail.com' })
       await emailjs.send('service_fopv36m', 'template_uauzulw', { ...params, to_email: fd.get('email') })
       setSent(true)
-    } catch {
-      alert('May error sa pag send. Try mo ulit boss!')
+    } catch (err) {
+      console.error('EmailJS error:', err)
+      alert('Error: ' + (err?.text || 'May error sa pag send. Try mo ulit boss!'))
     } finally {
       setLoading(false)
     }
