@@ -27,15 +27,17 @@ export default function Order() {
 
     const fd = new FormData(e.target)
     const total = Number(fd.get('copies')) * 3
-    const fileLinks = uploaded.map((f) => `${f.original_filename}.${f.format}: ${f.secure_url}`).join('\n')
+    const fileNames = uploaded.map((f) => `${f.original_filename}.${f.format}`).join(', ')
+    const fileUrls = uploaded.map((f) => f.secure_url).join(', ')
 
     const params = {
       name: fd.get('name'),
       email: fd.get('email'),
       copies: fd.get('copies'),
-      total,
+      total: String(total),
       details: fd.get('details'),
-      fileNames: fileLinks,
+      fileNames,
+      fileUrls,
     }
 
     try {
