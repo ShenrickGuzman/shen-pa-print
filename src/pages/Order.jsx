@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 export default function Order() {
   const [sent, setSent] = useState(false)
@@ -30,19 +30,19 @@ export default function Order() {
       copies: fd.get('copies'),
       total: String(total),
       details: fd.get('details'),
-      fileNames: uploaded.map((f) => `${f.original_filename}.${f.format}: ${f.secure_url}`).join(', '),
     }
 
     const sendOne = async (toEmail) => {
+      const body = {
+        service_id: 'service_fopv36m',
+        template_id: 'template_uauzulw',
+        user_id: 'cABxy76w2DtrotWc9',
+        template_params: { ...params, to_email: toEmail },
+      }
       const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id: 'service_fopv36m',
-          template_id: 'template_uauzulw',
-          user_id: 'cABxy76w2DtrotWc9',
-          template_params: { ...params, to_email: toEmail },
-        }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) {
         const text = await res.text()
