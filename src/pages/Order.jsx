@@ -6,28 +6,40 @@ emailjs.init('cABxy76w2DtrotWc9')
 export default function Order() {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [fileNames, setFileNames] = useState('')
+  const [uploaded, setUploaded] = useState([])
   const [copies, setCopies] = useState(1)
+
+  const openUploader = () => {
+    window.cloudinary.openUploadWidget(
+      { cloudName: 'dodjx4don', uploadPreset: 'ml_default', multiple: true },
+      (err, result) => {
+        if (!err && result?.event === 'success') {
+          setUploaded((prev) => [...prev, result.info])
+        }
+      }
+    )
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!uploaded.length) return alert('Please upload at least one file boss!')
     setLoading(true)
 
     const fd = new FormData(e.target)
+    const total = Number(fd.get('copies')) * 3
+    const fileLinks = uploaded.map((f) => `${f.original_filename}.${f.format}: ${f.secure_url}`).join('\n')
+
+    const params = {
+      name: fd.get('name'),
+      email: fd.get('email'),
+      copies: fd.get('copies'),
+      total,
+      details: fd.get('details'),
+      fileNames: fileLinks,
+    }
 
     try {
-      const total = Number(fd.get('copies')) * 3
-      const params = {
-        name: fd.get('name'),
-        email: fd.get('email'),
-        copies: fd.get('copies'),
-        total,
-        details: fd.get('details'),
-        fileNames: fileNames || 'None',
-      }
-
       await emailjs.send('service_fopv36m', 'template_uauzulw', { ...params, to_email: 'guzmanshenrick@gmail.com' })
-
       await emailjs.send('service_fopv36m', 'template_uauzulw', { ...params, to_email: fd.get('email') })
       setSent(true)
     } catch {
@@ -104,21 +116,19 @@ export default function Order() {
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1.5">Upload File</label>
-          <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-white/10 rounded-xl px-4 py-6 bg-slate-900/50 cursor-pointer hover:border-sky-500/50 transition">
-            <span className="text-3xl mb-2">📄</span>
-            <span className="text-sm text-gray-400">{fileNames || 'Tap to select files'}</span>
-            <input
-              name="files"
-              type="file"
-              multiple
-              required
-              className="hidden"
-              onChange={(e) => {
-                const files = Array.from(e.target.files)
-                setFileNames(files.map((f) => f.name).join(', '))
-              }}
-            />
-          </label>
+          <button type="button" onClick={openUploader} className="w-full border-2 border-dashed border-white/10 rounded-xl px-4 py-6 bg-slate-900/50 cursor-pointer hover:border-sky-500/50 transition text-center">
+            <p className="text-3xl mb-2">📄</p>
+            <p className="text-sm text-gray-400">
+              {uploaded.length ? `${uploaded.length} file(s) selected` : 'Tap to select files'}
+            </p>
+          </button>
+          {uploaded.length > 0 && (
+            <div className="mt-2 text-xs text-gray-500">
+              {uploaded.map((f, i) => (
+                <p key={i}>{f.original_filename}.{f.format}</p>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
