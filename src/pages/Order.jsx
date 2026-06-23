@@ -1,26 +1,29 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
+import emailjs from '@emailjs/browser'
+
+emailjs.init('cABxy76w2DtrotWc9')
 
 export default function Order() {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [fileNames, setFileNames] = useState('')
   const [copies, setCopies] = useState(1)
-  const formRef = useRef()
-  const fileRef = useRef()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
 
-    const fd = new FormData(formRef.current)
+    const fd = new FormData(e.target)
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-      const res = await fetch(`${apiUrl.replace(/\/+$/, '')}/api/order`, {
-        method: 'POST',
-        body: fd,
+      await emailjs.send('service_fopv36m', 'template_uauzulw', {
+        name: fd.get('name'),
+        email: fd.get('email'),
+        copies: fd.get('copies'),
+        total: Number(fd.get('copies')) * 3,
+        details: fd.get('details'),
+        fileNames: fileNames || 'None',
       })
-      if (!res.ok) throw new Error('Failed')
       setSent(true)
     } catch {
       alert('May error sa pag send. Try mo ulit boss!')
@@ -53,7 +56,7 @@ export default function Order() {
         <p className="text-gray-400 text-base sm:text-lg">Tell us what you need and we'll send a quote</p>
       </div>
 
-      <form ref={formRef} onSubmit={handleSubmit} className="bg-slate-800/50 rounded-2xl shadow-lg border border-white/5 p-5 sm:p-8 space-y-4 sm:space-y-5">
+      <form onSubmit={handleSubmit} className="bg-slate-800/50 rounded-2xl shadow-lg border border-white/5 p-5 sm:p-8 space-y-4 sm:space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1.5">Name</label>
           <input name="name" required className="w-full border border-white/10 rounded-xl px-4 py-3 sm:py-2.5 text-sm bg-slate-900/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition" />
@@ -100,7 +103,6 @@ export default function Order() {
             <span className="text-3xl mb-2">📄</span>
             <span className="text-sm text-gray-400">{fileNames || 'Tap to select files'}</span>
             <input
-              ref={fileRef}
               name="files"
               type="file"
               multiple
