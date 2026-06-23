@@ -11,7 +11,7 @@ export default function Order() {
 
   const openUploader = () => {
     window.cloudinary.openUploadWidget(
-      { cloudName: 'dodjx4don', uploadPreset: 'ml_default', multiple: true },
+      { cloudName: 'dodjx4don', uploadPreset: 'unsigned_preset', multiple: true },
       (err, result) => {
         if (!err && result?.event === 'success') {
           setUploaded((prev) => [...prev, result.info])
