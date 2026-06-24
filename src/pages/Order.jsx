@@ -35,33 +35,59 @@ export default function Order() {
       details: fd.get('details'),
     }
 
-    const proxySend = async (templateId, templateParams) => {
-      const res = await fetch('/api/send-email', {
+    const ownerHtml = `<div style="background:#0f172a;font-family:sans-serif;padding:30px 15px">
+  <div style="max-width:500px;margin:0 auto;background:#1e293b;border-radius:16px;padding:30px">
+    <h1 style="color:#0ea5e9;text-align:center">Shen pa Print</h1>
+    <p style="color:#64748b;text-align:center;font-size:13px">New Order Receipt</p>
+    <table style="width:100%;border-collapse:collapse;margin-top:20px">
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Customer</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.name}</td></tr>
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Email</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.email}</td></tr>
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Copies</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.copies}</td></tr>
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Total</td><td style="color:#0ea5e9;font-size:18px;font-weight:bold;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">₱${base.total}.00</td></tr>
+      <tr><td style="color:#64748b;padding:8px 0">Details</td><td style="color:#f1f5f9;padding:8px 0;text-align:right">${base.details}</td></tr>
+    </table>
+    <div style="background:#0f172a;border-radius:12px;padding:20px;margin-top:16px">
+      <p style="color:#64748b;font-size:13px;font-weight:bold;margin:0 0 10px">📎 FILES TO PRINT</p>
+      <p style="color:#38bdf8;font-size:13px;word-break:break-all;margin:0">${fileNames}</p>
+    </div>
+  </div>
+</div>`
+
+    const customerHtml = `<div style="background:#0f172a;font-family:sans-serif;padding:30px 15px">
+  <div style="max-width:500px;margin:0 auto;background:#1e293b;border-radius:16px;padding:30px;text-align:center">
+    <div style="font-size:40px;margin-bottom:10px">✅</div>
+    <h1 style="color:#0ea5e9;font-size:22px;margin:0">Order Received!</h1>
+    <p style="color:#94a3b8;font-size:14px">Thanks, ${base.name}! We'll get started.</p>
+    <table style="width:100%;border-collapse:collapse;margin-top:20px;text-align:left">
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Copies</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.copies}</td></tr>
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Total</td><td style="color:#0ea5e9;font-size:20px;font-weight:bold;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">₱${base.total}.00</td></tr>
+      <tr><td style="color:#64748b;padding:8px 0">Details</td><td style="color:#f1f5f9;padding:8px 0;text-align:right">${base.details}</td></tr>
+    </table>
+    <div style="background:#0f172a;border-radius:12px;padding:20px;margin-top:16px;text-align:left">
+      <p style="color:#64748b;font-size:13px;font-weight:bold;margin:0 0 10px">📄 FILES SUBMITTED</p>
+      <p style="color:#94a3b8;font-size:13px;margin:0">${uploaded.map((f) => f.original_filename).join(', ')}</p>
+    </div>
+    <p style="color:#64748b;font-size:12px;margin-top:20px">Shen pa Print · We print, you shine!</p>
+  </div>
+</div>`
+
+    try {
+      const res = await fetch('/api/sendmail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          service_id: 'service_fopv36m',
-          template_id: templateId,
-          user_id: 'cABxy76w2DtrotWc9',
-          template_params: templateParams,
+          ownerEmail: 'guzmanshenrick@gmail.com',
+          customerEmail: fd.get('email'),
+          subject: `New Order from ${base.name} — ₱${base.total}.00`,
+          html: ownerHtml,
+          customerSubject: `Your Order from Shen pa Print — ₱${base.total}.00`,
+          customerHtml: customerHtml,
         }),
       })
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || res.statusText)
-      }
-    }
-
-    try {
-      await proxySend('template_uauzulw', { ...base, fileNames })
-      await proxySend('template_msyvgp3', {
-        ...base,
-        fileNames: uploaded.map((f) => f.original_filename).join(', '),
-        to_email: fd.get('email'),
-      })
+      if (!res.ok) throw new Error(await res.text())
       setSent(true)
     } catch (err) {
-      console.error('EmailJS error:', err)
+      console.error('Sendmail error:', err)
       alert('Error: ' + err.message)
     } finally {
       setLoading(false)
