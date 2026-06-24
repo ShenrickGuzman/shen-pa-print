@@ -8,7 +8,7 @@ export default function Order() {
 
   const openUploader = () => {
     window.cloudinary.openUploadWidget(
-      { cloudName: 'dodjx4don', uploadPreset: 'ml_default', multiple: true, resourceType: 'raw' },
+      { cloudName: 'dodjx4don', uploadPreset: 'ml_default', multiple: true },
       (err, result) => {
         console.log('Cloudinary result:', result)
         if (!err && result?.event === 'success') {
