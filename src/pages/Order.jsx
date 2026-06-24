@@ -24,7 +24,7 @@ export default function Order() {
 
     const fd = new FormData(e.target)
     const total = Number(fd.get('copies')) * 3
-    const fileNames = uploaded.map((f) => `${f.original_filename}.${f.format}: ${f.secure_url}`).join(', ')
+    const fileNames = uploaded.map((f) => `${f.original_filename}.${f.format || f.secure_url.split('.').pop().split('?')[0]}: ${f.secure_url}`).join(', ')
 
     const sendToOwner = async () => {
       const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
@@ -61,7 +61,7 @@ export default function Order() {
             copies: fd.get('copies'),
             total: String(total),
             details: fd.get('details'),
-            fileNames: uploaded.map((f) => `${f.original_filename}.${f.format}`).join(', '),
+            fileNames: uploaded.map((f) => `${f.original_filename}.${f.format || f.secure_url.split('.').pop().split('?')[0]}`).join(', '),
             to_email: fd.get('email'),
           },
         }),
@@ -157,7 +157,7 @@ export default function Order() {
           {uploaded.length > 0 && (
             <div className="mt-2 text-xs text-gray-500">
               {uploaded.map((f, i) => (
-                <p key={i}>{f.original_filename}.{f.format}</p>
+                <p key={i}>{f.original_filename}.{f.format || f.secure_url.split('.').pop().split('?')[0]}</p>
               ))}
             </div>
           )}
