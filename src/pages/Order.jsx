@@ -10,6 +10,7 @@ export default function Order() {
     window.cloudinary.openUploadWidget(
       { cloudName: 'dodjx4don', uploadPreset: 'ml_default', multiple: true },
       (err, result) => {
+        console.log('Cloudinary result:', result)
         if (!err && result?.event === 'success') {
           setUploaded((prev) => [...prev, result.info])
         }
