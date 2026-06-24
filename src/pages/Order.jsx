@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import emailjs from 'emailjs-com'
 
 export default function Order() {
   const [sent, setSent] = useState(false)
@@ -36,17 +35,34 @@ export default function Order() {
       details: fd.get('details'),
     }
 
+    const proxySend = async (templateId, templateParams) => {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: 'service_fopv36m',
+          template_id: templateId,
+          user_id: 'cABxy76w2DtrotWc9',
+          template_params: templateParams,
+        }),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || res.statusText)
+      }
+    }
+
     try {
-      await emailjs.send('service_fopv36m', 'template_uauzulw', { ...base, fileNames }, 'cABxy76w2DtrotWc9')
-      await emailjs.send('service_fopv36m', 'template_msyvgp3', {
+      await proxySend('template_uauzulw', { ...base, fileNames })
+      await proxySend('template_msyvgp3', {
         ...base,
         fileNames: uploaded.map((f) => f.original_filename).join(', '),
         to_email: fd.get('email'),
-      }, 'cABxy76w2DtrotWc9')
+      })
       setSent(true)
     } catch (err) {
       console.error('EmailJS error:', err)
-      alert('Error: ' + (err?.text || 'Failed to send'))
+      alert('Error: ' + err.message)
     } finally {
       setLoading(false)
     }
