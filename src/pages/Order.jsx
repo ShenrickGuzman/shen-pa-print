@@ -24,35 +24,54 @@ export default function Order() {
 
     const fd = new FormData(e.target)
     const total = Number(fd.get('copies')) * 3
-    const params = {
-      name: fd.get('name'),
-      email: fd.get('email'),
-      copies: fd.get('copies'),
-      total: String(total),
-      details: fd.get('details'),
-    }
+    const fileNames = uploaded.map((f) => `${f.original_filename}.${f.format}: ${f.secure_url}`).join(', ')
 
-    const sendOne = async (toEmail) => {
-      const body = {
-        service_id: 'service_fopv36m',
-        template_id: 'template_uauzulw',
-        user_id: 'cABxy76w2DtrotWc9',
-        template_params: { ...params, to_email: toEmail },
-      }
+    const sendToOwner = async () => {
       const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          service_id: 'service_fopv36m',
+          template_id: 'template_uauzulw',
+          user_id: 'cABxy76w2DtrotWc9',
+          template_params: {
+            name: fd.get('name'),
+            email: fd.get('email'),
+            copies: fd.get('copies'),
+            total: String(total),
+            details: fd.get('details'),
+            fileNames,
+          },
+        }),
       })
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || res.statusText)
-      }
+      if (!res.ok) throw new Error(await res.text())
+    }
+
+    const sendToCustomer = async () => {
+      const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: 'service_fopv36m',
+          template_id: 'template_msyvgp3',
+          user_id: 'cABxy76w2DtrotWc9',
+          template_params: {
+            name: fd.get('name'),
+            email: fd.get('email'),
+            copies: fd.get('copies'),
+            total: String(total),
+            details: fd.get('details'),
+            fileNames: uploaded.map((f) => `${f.original_filename}.${f.format}`).join(', '),
+            to_email: fd.get('email'),
+          },
+        }),
+      })
+      if (!res.ok) throw new Error(await res.text())
     }
 
     try {
-      await sendOne('guzmanshenrick@gmail.com')
-      await sendOne(fd.get('email'))
+      await sendToOwner()
+      await sendToCustomer()
       setSent(true)
     } catch (err) {
       console.error('EmailJS error:', err)
