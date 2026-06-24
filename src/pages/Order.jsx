@@ -32,6 +32,7 @@ export default function Order() {
       name: fd.get('name'),
       email: fd.get('email'),
       copies: fd.get('copies'),
+      size: fd.get('size'),
       total: String(total),
       details: fd.get('details'),
     }
@@ -43,6 +44,7 @@ export default function Order() {
     <table style="width:100%;border-collapse:collapse;margin-top:20px">
       <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Customer</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.name}</td></tr>
       <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Email</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.email}</td></tr>
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Paper Size</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.size}</td></tr>
       <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Copies</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.copies}</td></tr>
       <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Total</td><td style="color:#0ea5e9;font-size:18px;font-weight:bold;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">₱${base.total}.00</td></tr>
       <tr><td style="color:#64748b;padding:8px 0">Details</td><td style="color:#f1f5f9;padding:8px 0;text-align:right">${base.details}</td></tr>
@@ -60,6 +62,7 @@ export default function Order() {
     <h1 style="color:#0ea5e9;font-size:22px;margin:0">Order Received!</h1>
     <p style="color:#94a3b8;font-size:14px">Thanks, ${base.name}! We'll get started.</p>
     <table style="width:100%;border-collapse:collapse;margin-top:20px;text-align:left">
+      <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Paper Size</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.size}</td></tr>
       <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Copies</td><td style="color:#f1f5f9;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">${base.copies}</td></tr>
       <tr><td style="color:#64748b;padding:8px 0;border-bottom:1px solid #ffffff0d">Total</td><td style="color:#0ea5e9;font-size:20px;font-weight:bold;padding:8px 0;text-align:right;border-bottom:1px solid #ffffff0d">₱${base.total}.00</td></tr>
       <tr><td style="color:#64748b;padding:8px 0">Details</td><td style="color:#f1f5f9;padding:8px 0;text-align:right">${base.details}</td></tr>
