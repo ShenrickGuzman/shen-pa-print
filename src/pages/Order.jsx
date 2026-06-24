@@ -8,7 +8,7 @@ export default function Order() {
 
   const openUploader = () => {
     window.cloudinary.openUploadWidget(
-      { cloudName: 'dodjx4don', uploadPreset: 'ml_default', multiple: true },
+      { cloudName: 'dodjx4don', uploadPreset: 'ml_default', multiple: true, resourceType: 'raw' },
       (err, result) => {
         console.log('Cloudinary result:', result)
         if (!err && result?.event === 'success') {
@@ -25,8 +25,7 @@ export default function Order() {
 
     const fd = new FormData(e.target)
     const total = Number(fd.get('copies')) * 3
-    const toDownloadUrl = (url) => url.replace('/upload/', '/upload/fl_attachment/')
-    const fileNames = uploaded.map((f) => `${f.original_filename}: ${toDownloadUrl(f.secure_url)}`).join(', ')
+    const fileNames = uploaded.map((f) => `${f.original_filename}: ${f.secure_url}`).join(', ')
 
     const sendToOwner = async () => {
       const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
