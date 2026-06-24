@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import emailjs from '@emailjs/browser'
+import emailjs from 'emailjs-com'
 
 export default function Order() {
   const [sent, setSent] = useState(false)
@@ -28,7 +28,6 @@ export default function Order() {
     const total = Number(fd.get('copies')) * 3
     const fileNames = uploaded.map((f) => `${f.original_filename}: ${f.secure_url}`).join(', ')
 
-    emailjs.init('cABxy76w2DtrotWc9')
     const base = {
       name: fd.get('name'),
       email: fd.get('email'),
@@ -38,12 +37,12 @@ export default function Order() {
     }
 
     try {
-      await emailjs.send('service_fopv36m', 'template_uauzulw', { ...base, fileNames })
+      await emailjs.send('service_fopv36m', 'template_uauzulw', { ...base, fileNames }, 'cABxy76w2DtrotWc9')
       await emailjs.send('service_fopv36m', 'template_msyvgp3', {
         ...base,
         fileNames: uploaded.map((f) => f.original_filename).join(', '),
         to_email: fd.get('email'),
-      })
+      }, 'cABxy76w2DtrotWc9')
       setSent(true)
     } catch (err) {
       console.error('EmailJS error:', err)
