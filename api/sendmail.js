@@ -5,6 +5,10 @@ export default async function handler(req, res) {
 
   const { ownerEmail, customerEmail, subject, html, customerSubject, customerHtml } = req.body
 
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
+    return res.status(500).send('Missing GMAIL_USER or GMAIL_PASS env vars')
+  }
+
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
