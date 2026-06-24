@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
+import emailjs from '@emailjs/browser'
 
 export default function Order() {
   const [sent, setSent] = useState(false)
@@ -27,56 +28,26 @@ export default function Order() {
     const total = Number(fd.get('copies')) * 3
     const fileNames = uploaded.map((f) => `${f.original_filename}: ${f.secure_url}`).join(', ')
 
-    const sendToOwner = async () => {
-      const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id: 'service_fopv36m',
-          template_id: 'template_uauzulw',
-          user_id: 'cABxy76w2DtrotWc9',
-          template_params: {
-            name: fd.get('name'),
-            email: fd.get('email'),
-            copies: fd.get('copies'),
-            total: String(total),
-            details: fd.get('details'),
-            fileNames,
-          },
-        }),
-      })
-      if (!res.ok) throw new Error(await res.text())
-    }
-
-    const sendToCustomer = async () => {
-      const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id: 'service_fopv36m',
-          template_id: 'template_msyvgp3',
-          user_id: 'cABxy76w2DtrotWc9',
-          template_params: {
-            name: fd.get('name'),
-            email: fd.get('email'),
-            copies: fd.get('copies'),
-            total: String(total),
-            details: fd.get('details'),
-            fileNames: uploaded.map((f) => f.original_filename).join(', '),
-            to_email: fd.get('email'),
-          },
-        }),
-      })
-      if (!res.ok) throw new Error(await res.text())
+    emailjs.init('cABxy76w2DtrotWc9')
+    const base = {
+      name: fd.get('name'),
+      email: fd.get('email'),
+      copies: fd.get('copies'),
+      total: String(total),
+      details: fd.get('details'),
     }
 
     try {
-      await sendToOwner()
-      await sendToCustomer()
+      await emailjs.send('service_fopv36m', 'template_uauzulw', { ...base, fileNames })
+      await emailjs.send('service_fopv36m', 'template_msyvgp3', {
+        ...base,
+        fileNames: uploaded.map((f) => f.original_filename).join(', '),
+        to_email: fd.get('email'),
+      })
       setSent(true)
     } catch (err) {
       console.error('EmailJS error:', err)
-      alert('Error: ' + err.message)
+      alert('Error: ' + (err?.text || 'Failed to send'))
     } finally {
       setLoading(false)
     }
