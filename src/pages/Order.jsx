@@ -92,7 +92,7 @@ export default function Order() {
             Thank you! Your order total is <span className="text-sky-400 font-bold">₱{Number(copies) * 3}.00</span>
           </p>
           <p className="text-gray-500 text-sm mt-3">
-            The order receipt will be sent to your email shortly. Please double check it. Thank you!
+            Please check your email for the order receipt and double-check it. Thank you!
           </p>
         </div>
       </main>
@@ -136,7 +136,11 @@ export default function Order() {
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1.5">How many copies?</label>
-          <input name="copies" type="number" min="1" required value={copies} onChange={(e) => setCopies(Math.max(1, Number(e.target.value)))} className="w-full border border-white/10 rounded-xl px-4 py-3 sm:py-2.5 text-sm bg-slate-900/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition" />
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => setCopies(Math.max(1, copies - 1))} className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-slate-700/50 text-white text-xl font-bold hover:bg-slate-600/50 active:scale-90 transition-all cursor-pointer">−</button>
+            <input name="copies" type="number" min="1" required value={copies} onChange={(e) => setCopies(Math.max(1, Number(e.target.value)))} className="flex-1 text-center border border-white/10 rounded-xl px-4 py-3 sm:py-2.5 text-lg font-bold bg-slate-900/50 text-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+            <button type="button" onClick={() => setCopies(copies + 1)} className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-sky-500/20 text-sky-400 text-xl font-bold hover:bg-sky-500/30 active:scale-90 transition-all cursor-pointer">+</button>
+          </div>
         </div>
 
         {copies > 0 && (
